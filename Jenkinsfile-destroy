@@ -1,0 +1,117 @@
+pipeline {
+  agent any
+  parameters {
+    choice(name: 'ACTION', choices: ['dev-destroy', 'prod-destroy'], description: 'Choose Environment')
+  }
+  stages {
+
+    stage('Components Destroy') {
+      parallel {
+        stage('Cart Destroy') {
+          steps {
+            dir('cart') {
+              sh '''
+                  git clone https://DevOps-Batches@dev.azure.com/DevOps-Batches/DevOps57/_git/cart .
+                  cd terraform-mutable
+                  make ${ACTION}
+                '''
+            }
+          }
+        }
+        stage('Catalogue Destroy') {
+          steps {
+            dir('catalogue') {
+              sh '''
+
+                git clone https://DevOps-Batches@dev.azure.com/DevOps-Batches/DevOps57/_git/catalogue .
+                cd terraform-mutable
+                make ${ACTION}
+              '''
+            }
+          }
+        }
+        stage('User Destroy') {
+          steps {
+            dir('user') {
+              sh '''
+                git clone https://DevOps-Batches@dev.azure.com/DevOps-Batches/DevOps57/_git/user .
+                cd terraform-mutable
+                make ${ACTION}
+              '''
+            }
+          }
+        }
+        stage('Payment Destroy') {
+          steps {
+            dir('payment') {
+              sh '''
+                git clone https://DevOps-Batches@dev.azure.com/DevOps-Batches/DevOps57/_git/payment .
+                cd terraform-mutable
+                make ${ACTION}
+            '''
+            }
+          }
+        }
+        stage('Shipping Destroy') {
+          steps {
+            dir('shipping') {
+              sh '''
+                git clone https://DevOps-Batches@dev.azure.com/DevOps-Batches/DevOps57/_git/shipping .
+                cd terraform-mutable
+                make ${ACTION}
+              '''
+            }
+          }
+        }
+        stage('Frontend Destroy') {
+          steps {
+            dir('frontend') {
+              sh '''
+                git clone https://DevOps-Batches@dev.azure.com/DevOps-Batches/DevOps57/_git/frontend .
+                cd terraform-mutable
+                make ${ACTION}
+              '''
+            }
+          }
+        }
+
+      }
+    }
+
+    stage('ALB Destroy') {
+      steps {
+        sh '''
+          cd alb
+          make ${ACTION}
+        '''
+      }
+    }
+
+    stage('DB Destroy') {
+      steps {
+        sh '''
+          cd databases
+          make ${ACTION}
+        '''
+      }
+    }
+
+    stage('VPC Destroy') {
+      steps {
+        sh '''
+          cd vpc
+          make ${ACTION}
+        '''
+      }
+    }
+
+  }
+
+  post {
+    always {
+      cleanWs()
+    }
+  }
+
+}
+
